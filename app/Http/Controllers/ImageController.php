@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\ImageResource;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use App\Models\Image;
 
 class ImageController extends Controller
@@ -37,7 +36,7 @@ class ImageController extends Controller
     {
         try {
             $validator = Validator::make($request->all(),[
-                'name'   => '',
+                'name'   => 'required|string',
                 'file'   => 'required|image|mimes:jpeg,png,jpg|max:2048',
                 'enable' => 'required|boolean',
             ]);
@@ -50,11 +49,11 @@ class ImageController extends Controller
 
             $getImage = $request->file('file');
             $filePath = 'public/images/';
-            $extension = $getImage->getClientOriginalExtension();
-            $fileName = strtotime("now").Str::random(10);
-            $fullname = $fileName.'.'.$extension;
+            $fileNameOriginal = $getImage->getClientOriginalName();
+            $fullName = str_replace(' ', '', $fileNameOriginal);
+            // $fileName = pathinfo($fullName, PATHINFO_FILENAME);
 
-            $getData = Image::where('name', $fullname)->first();
+            $getData = Image::where('file', $filePath.$fullName)->first();
             if ($getData) {
                 $cekImageInStorage = Storage::exists($getData->file);
                     if ($cekImageInStorage) {
@@ -62,10 +61,10 @@ class ImageController extends Controller
                     }
             }
 
-            $getImage->storeAs($filePath, $fullname);
+            $getImage->storeAs($filePath, $fullName);
             $image = new Image();
-            $image->name = $fileName;
-            $image->file = $filePath.$fullname;
+            $image->name = $request->name;
+            $image->file = $filePath.$fullName;
             $image->enable = $request->enable;
             $image->save();
 
@@ -93,26 +92,67 @@ class ImageController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Image $image)
     {
-        //
+        // return $image;
+        try {
+            $validator = Validator::make($request->all(),[
+                'name'   => 'required|string',
+                'enable' => 'required|boolean',
+                'file'   => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            ]);
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => 0,
+                    'message' => $validator->messages()->all(),
+                ], 422);
+            }
+
+            $getName = $request->name;
+            $getEnable = $request->enable;
+            $getImage = $request->file('file');
+            $filePath = 'public/images/';
+            $fileNameOriginal = $getImage->getClientOriginalName();
+            $fullName = str_replace(' ', '', $fileNameOriginal);
+            // $fileName = pathinfo($fullName, PATHINFO_FILENAME);
+
+            $getData = Image::where('file', $filePath.$fullName)->first();
+            if ($getData) {
+                $cekImageInStorage = Storage::exists($getData->file);
+                    if ($cekImageInStorage) {
+                        Storage::delete($getData->file);
+                    }
+            }
+
+            $getImage->storeAs($filePath, $fullName);
+
+            $image->name = $request->name;
+            $image->file = $filePath.$fullName;
+            $image->enable = $request->enable;
+            $image->save();
+
+            
+            return response()->json([
+                "success" => 1,
+                "message" => "Update success",
+                "data"    => new ImageResource($image)
+            ]);
+        } catch (\Throwable $th) {
+            //throw $th;
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Image $image)
     {
-        //
+        $image->delete();
+        return response()->json([
+            "success" => 1,
+            "message" => "Delete success",
+        ], 200);
     }
 }

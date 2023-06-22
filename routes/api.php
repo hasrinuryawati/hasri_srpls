@@ -47,5 +47,5 @@ Route::delete('/category/product/destroy/{product}/{category}', [CategoryProduct
 Route::get('/image', [ImageController::class, 'index']);
 Route::post('/image/store', [ImageController::class, 'store']);
 Route::get('/image/detail/{image}', [ImageController::class, 'detail']);
-Route::put('/image/update/{image}', [ImageController::class, 'update']);
+Route::post('/image/update/{image}', [ImageController::class, 'update']);
 Route::delete('/image/destroy/{image}', [ImageController::class, 'destroy']);
