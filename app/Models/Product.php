@@ -20,4 +20,8 @@ class Product extends Model
     public function category() : BelongsToMany {
         return $this->belongsToMany(Category::class, 'category_products');
     }
+
+    public function image() : BelongsToMany {
+        return $this->belongsToMany(Image::class, 'product_images');
+    }
 }
