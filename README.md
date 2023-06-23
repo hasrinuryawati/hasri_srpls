@@ -9,3 +9,4 @@
 - Sesuaikan isi DB_DATABASE=databasename, 
 - run: php artisan migrate (untuk menjalankan file migrasi ke database)
 - run: php artisan db:seed (untuk sample data)
+- run: php artisan serve (untuk menjalankan server)
